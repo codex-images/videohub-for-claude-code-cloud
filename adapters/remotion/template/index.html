@@ -1,0 +1,24 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<!-- width=... must match the video size in data.json -->
+<meta name="viewport" content="width=1080">
+<title>film</title>
+<style>html,body{margin:0;background:#000;overflow:hidden;width:1080px;height:1920px}#root{width:1080px;height:1920px}</style>
+</head>
+<body>
+<div id="root"></div>
+<!-- bundle.js is built from entry.jsx (see the README); videohub-adapter.js is copied next to it -->
+<script src="bundle.js"></script>
+<script src="videohub-adapter.js"></script>
+<script>
+  // entry.jsx mounts the Remotion <Player> and exposes window.vhPlayer = { total, seekTo, play, pause, time, ready }
+  // React renders asynchronously, so wait until the player object exists
+  (function wait() {
+    if (window.vhPlayer) VHAdapter.install(window.vhPlayer, { preload: 'preload.json', audio: 'audio/mix.mp3' });
+    else setTimeout(wait, 50);
+  })();
+</script>
+</body>
+</html>
