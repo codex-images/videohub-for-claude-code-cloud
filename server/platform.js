@@ -469,6 +469,7 @@ function createUnixPlatform({ osName: OS, env, home, temp, fs, os, path, spawn, 
   function tree(rows, root) { const ids = new Set([root]); let n; do { n = ids.size; for (const p of rows || []) if (ids.has(p.ppid)) ids.add(p.pid); } while (ids.size > n); return [...ids]; }
   async function killTree(pid) {
     pid = +pid; if (!Number.isSafeInteger(pid) || pid <= 1 || pid === process.pid) return;
+    // (from jorgepvenegas/Videohub, "P4: stop render trees without relaunched orphans")
     // Freeze the root first: render.js ignores SIGTERM and relaunches Chrome (own process group) when a child dies.
     try { kill(pid, 'SIGSTOP'); } catch { }
     const before = await processList(), ids = tree(before, pid).filter(id => id !== pid), starts = new Map((before || []).map(p => [p.pid, p.start]));

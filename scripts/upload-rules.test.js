@@ -23,6 +23,7 @@ test('no file VideoHub needs starts with a dot (GitHub\'s browser upload would d
       const r = rel ? rel + '/' + e.name : e.name;
       if (!rel && (LOCAL.has(e.name) || ALLOWED_DOT_FILES.has(e.name))) continue;
       if (e.isDirectory() && (e.name === 'node_modules' || e.name === 'render')) continue;
+      if (!rel && e.name === 'deploy') continue;   // this fork ships deploy/ (.env.example, .gitattributes) through git, not the browser upload
       if (droppedByBrowser(r)) { bad.push(r); continue; }
       if (e.isDirectory()) walk(path.join(d, e.name), r);
     }

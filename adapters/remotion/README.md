@@ -38,3 +38,7 @@ in VideoHub's page contract (`window.renderOut(t)` + `window.READY`).
 ## Rendering
 
 `node render.js 2` (two workers) writes `render/chunks/c_000.mp4 ...`, concatenates them, and muxes the audio. Re-run after a stop: finished chunks are kept. In VideoHub use the render queue instead (it passes `VIDEOHUB_JOB`).
+
+## Known limitation: black note pictures
+
+VideoHub captures note pictures from a canvas. A DOM and `<video>` page (like this adapter's) gives **black** `nNNN_frame.jpg` and close-up images. The marks (`region`, `drawing`) and `t` / `frame` are saved correctly. Workaround: render a still at time `t` (`npx remotion still <composition> --frame=N`, or screenshot the page after `await window.renderOut(t)` in headless Chromium) and draw the `region` and `drawing` from `notes.json` over it. See `skill/videohub-cloud/SKILL.md`.

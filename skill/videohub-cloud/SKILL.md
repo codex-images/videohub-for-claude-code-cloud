@@ -57,6 +57,10 @@ When the user says they sent notes (or asks you to check), `git pull --rebase` a
 | `drawing` / `images` | pictures: the frame, the frame with their drawing, a close-up. The files are in `notes/<name>/notes/` (match by file name; the stored absolute paths point inside the container). Look at them. |
 | `status` | `open`, `claude`, `fixed`, `approved`, `reopened` |
 
+**Known limitation:** for projects built from DOM and `<video>` tags (such as the Remotion adapter), VideoHub only captures canvases, so the note pictures (`nNNN_frame.jpg` and the close-up) come out **black**. The marks themselves (`region`, `drawing`) and the fields `t` and `frame` are stored correctly. Recommended workaround, on your side: render a single frame at time `t` (`npx remotion still <composition> --frame=N`, or open the page in headless Chromium, `await window.renderOut(t)`, screenshot) and draw the `region` and `drawing` from `notes.json` on top of it before you look at it.
+
+Timing: a note reaches the cloud session in under a minute (the sync cycle is 60 seconds).
+
 Work only on notes with status `open` or `reopened`.
 
 ## 4. Map a note to a shot, fix, mark

@@ -1,3 +1,4 @@
+// Adapted from DecafCoding/Videohub (server/lan.js): https://github.com/DecafCoding/Videohub
 // Who may use the hub. By default only this PC: a page on another website (or a DNS name pointed at 127.0.0.1)
 // must not drive the hub, because its job queue can run commands. A server on a private network can name the
 // host names and addresses other PCs use to reach it (config.allowedHosts); those count as this PC's own.
