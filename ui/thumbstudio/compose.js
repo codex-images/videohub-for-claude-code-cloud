@@ -1,6 +1,7 @@
 // Final composition panel (view mode "Final"): crop of the chosen variant, adjustments, text/marks drawn by code,
 // small-size readability test, a generic video-feed mock (light/dark, A/B) and the < 2 MB JPEG export.
 import { h, api, toast } from '../app.js';
+import { copyText } from '../copy.js';
 import { drawFinal, FINAL_DEFAULTS, getLayerBoxSafe } from './scene.js';
 
 export const FINAL_LIMIT = 2 * 1024 * 1024;
@@ -107,8 +108,8 @@ export function renderFinalPanel(container, { pid, tid, getBrief, onEdit, onSave
     info.textContent = `Last saved: ${(b.final.bytes / 1048576).toFixed(2)} MB · ${b.final.w}×${b.final.h}${b.final.copy ? ' · Also in the Outputs folder' : ''}${b.final.copyError ? ' · Could not copy to the Outputs folder: ' + b.final.copyError : ''}`;
     actions.append(
       h('button', { class: 'ghost', onclick: () => api(`/api/thumbstudio/${pid}/${tid}/open-folder`, { method: 'POST', body: { file: 'final.jpg' } }).catch(e => toast(e.message, true)) }, '📂 Show in folder'),
-      h('button', { class: 'ghost', onclick: async () => { const t = await api(`/api/thumbstudio/find/${tid}`); const p = t.dir + '\\final.jpg'; try { await navigator.clipboard.writeText(p); toast('Path copied'); } catch { toast(p); } } }, '⧉ Copy path'),
-      b.final.copy ? h('button', { class: 'ghost', title: b.final.copy, onclick: async () => { try { await navigator.clipboard.writeText(b.final.copy); toast('Outputs folder path copied'); } catch { toast(b.final.copy); } } }, '⧉ Output path') : null);
+      h('button', { class: 'ghost', onclick: async () => { const t = await api(`/api/thumbstudio/find/${tid}`); const p = t.dir + (t.dir.includes('\\') ? '\\' : '/') + 'final.jpg'; await copyText(p, 'Path copied'); } }, '⧉ Copy path'),
+      b.final.copy ? h('button', { class: 'ghost', title: b.final.copy, onclick: () => copyText(b.final.copy, 'Outputs folder path copied') }, '⧉ Output path') : null);
   };
   drawActions(brief);
   exportBtn.onclick = async () => {

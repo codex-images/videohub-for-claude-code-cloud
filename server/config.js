@@ -68,6 +68,12 @@ export const WORKSPACE_FOLDERS = { films: 'films', outputs: 'outputs', sounds: '
 // every key but the roots (roots are found once, on the very first run)
 export const DEFAULTS = (base = baseDir()) => ({
   port: 7788,
+  // network access (a server on a private LAN). Set in data/config.json only; Settings cannot change them.
+  // host: bind address ('0.0.0.0' = every interface; the MCP tools still use 127.0.0.1). allowedHosts: the names and
+  // addresses other PCs type to reach the hub. publicUrl: the link hub_live hands out, e.g. "http://192.168.1.50:7788".
+  host: '127.0.0.1',
+  allowedHosts: [],
+  publicUrl: null,
   agentName: 'Claude',
   outputsDir: path.join(base, 'outputs'),
   soundLibDir: path.join(base, 'sounds'),
@@ -110,6 +116,9 @@ function normalise(c, port) {
   c.roots = (Array.isArray(c.roots) ? c.roots : []).filter(r => r && typeof r.path === 'string' && r.path)
     .map(r => ({ ...r, type: ['container', 'project', 'media'].includes(r.type) ? r.type : 'container', enabled: r.enabled !== false }));
   c.thumbstudio = { ...defaultThumbstudioDirs(), ...(c.thumbstudio && typeof c.thumbstudio === 'object' && !Array.isArray(c.thumbstudio) ? c.thumbstudio : {}) };
+  c.host = typeof c.host === 'string' && c.host.trim() ? c.host.trim() : '127.0.0.1';
+  c.allowedHosts = (Array.isArray(c.allowedHosts) ? c.allowedHosts : []).filter(x => typeof x === 'string' && x.trim()).map(x => x.trim());
+  c.publicUrl = typeof c.publicUrl === 'string' && /^https?:\/\/[^/\s]+/i.test(c.publicUrl) ? c.publicUrl : null;
   c.port = /^\d{1,5}$/.test(String(c.port)) && +c.port > 0 && +c.port < 65536 ? +c.port : port;
   const r = c.render && typeof c.render === 'object' && !Array.isArray(c.render) ? c.render : {};
   c.render = { ...r, encoder: ENCODERS.includes(r.encoder) ? r.encoder : 'auto' };
@@ -119,6 +128,7 @@ export function saveConfig(patch) {
   const prev = config(); if (!patch || typeof patch !== 'object' || Array.isArray(patch)) patch = {};
   if ('roots' in patch && !Array.isArray(patch.roots)) { const { roots, ...rest } = patch; patch = rest; }   // not a list: keep the folders there are
   if ('baseDir' in patch) { const { baseDir: b, ...rest } = patch; patch = rest; }   // the workspace is chosen in setup only (it never moves folders)
+  { const { host, allowedHosts, publicUrl, ...rest } = patch; patch = rest; }   // network access: data/config.json only, so a LAN page cannot widen it
   if (patch.render && typeof patch.render === 'object') patch = { ...patch, render: { ...prev.render, ...patch.render } };
   cfg = normalise({ ...prev, ...patch }, prev.port); writeJson(FILE, cfg); return cfg;
 }

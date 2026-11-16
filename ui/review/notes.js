@@ -1,6 +1,7 @@
 import { agentName } from '../agent.js';
 // Notes panel: the draft note being written, the list of notes, edits, statuses, `send to ${agentName()}`.
 import { h, api, toast, confirmBox, pill, TC, AGO } from '../app.js';
+import { copyText } from '../copy.js';
 
 // Element.append prints null/false as text; this skips them like h() does.
 const put = (el, ...kids) => { for (const c of kids.flat(Infinity)) if (c != null && c !== false) el.append(c); return el; };
@@ -204,8 +205,7 @@ export function createNotesPanel(ctx) {
   }
   async function send() {
     const { text } = await api(`/api/project/${ctx.projectId}/prompt`, { method: 'POST', body: {} });
-    try { await navigator.clipboard.writeText(text); toast('Message copied to the clipboard. Paste it into the project chat.'); }
-    catch { await confirmBox('Paste into chat', h('textarea', { style: { width: '100%', minHeight: '90px' } }, text), 'OK'); }
+    await copyText(text, 'Message copied to the clipboard. Paste it into the project chat.', 'Paste into chat');
   }
   // scrolls the list only: scrollIntoView also scrolled the page, so picking a note in a narrow window moved the
   // player and timeline away from under the mouse

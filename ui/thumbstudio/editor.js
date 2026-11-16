@@ -1,6 +1,7 @@
 import { agentName } from '../agent.js';
 // VideoHub · Thumbnail Studio Editor Shell (#/thumbstudio/<pid>/<tid>)
 import { h, api, toast, confirmBox, pill, onHubEvent } from '../app.js';
+import { copyText } from '../copy.js';
 import { History } from './history.js';
 import { drawScene, renderExportCanvases, setImageLoadHandler, isOverlayLayer } from './scene.js';
 import { generatePrompt } from './prompt.js';
@@ -278,7 +279,7 @@ export async function renderEditor(page, pid, tid) {
     h('summary', {}, 'Prompt preview ', promptLen),
     promptText, promptEdit,
     h('div', { class: 'row', style: { gap: '6px' } }, promptEditBtn, promptAutoBtn, h('span', { class: 'spacer' }),
-      h('button', { class: 'ghost', title: 'Copy prompt to clipboard', onclick: async () => { try { await navigator.clipboard.writeText(generatePrompt(state.brief).prompt); toast('Prompt copied'); } catch { toast('Could not copy', true); } } }, '⧉')));
+      h('button', { class: 'ghost', title: 'Copy prompt to clipboard', onclick: () => copyText(generatePrompt(state.brief).prompt, 'Prompt copied') }, '⧉')));
   try { promptBox.open = localStorage.getItem('ts-prompt-open') === '1'; } catch { }
   promptBox.addEventListener('toggle', () => { try { localStorage.setItem('ts-prompt-open', promptBox.open ? '1' : '0'); } catch { } updatePromptPreview(); });
   promptEditBtn.onclick = () => { promptEdit.value = generatePrompt(state.brief).prompt; promptEdit.hidden = false; promptText.hidden = true; promptEdit.focus(); };
@@ -363,8 +364,7 @@ export async function renderEditor(page, pid, tid) {
     try {
       await doExport(false);
       const { message } = await api(`/api/thumbstudio/${pid}/${tid}/claude-message`, { method: 'POST' });
-      try { await navigator.clipboard.writeText(message); toast(`Message copied: paste it into a ${agentName()} chat`); }
-      catch { await confirmBox(`Send to ${agentName()}`, h('textarea', { rows: 8, style: { width: '100%' }, readonly: true }, message), 'OK'); }
+      await copyText(message, `Message copied: paste it into a ${agentName()} chat`, `Send to ${agentName()}`);
     } catch { }
   }
 

@@ -1,5 +1,5 @@
 import { norm } from './util.js';
-// VideoHub server: http://127.0.0.1:7788  (UI + JSON API + server-sent events). Local only.
+// VideoHub server: http://127.0.0.1:7788  (UI + JSON API + server-sent events). Local only unless config.host/allowedHosts open it to the LAN.
 import http from 'node:http';
 import fs from 'node:fs';
 import path from 'node:path';
@@ -27,6 +27,7 @@ import * as edit2d from './edit2d.js';
 import * as soundEdit from './soundedit.js';
 import * as tweaksApi from './tweaks.js';
 import { openFile } from './open-file.js';
+import { allowedHostSet, foreignWhy, publicLink } from './lan.js';
 import { transcript } from './transcript.js';
 import { ramHogs } from './ramhogs.js';
 import * as thumbstudio from './thumbstudio/store.js';
@@ -336,7 +337,10 @@ route('POST', '/api/show', async (req) => {
   const { hash } = await readBody(req);
   if (typeof hash !== 'string' || !/^#\/[\w\-/~%.]*$/.test(hash)) throw Object.assign(new Error('invalid page'), { code: 400 });
   if (process.env.VIDEOHUB_GUARD !== 'off') ensureGuard().catch(() => { });
-  if (clients.size) { broadcast('navigate', { hash }); return { ok: true, how: 'window' }; }
+  // a server on the network (config.publicUrl): the user opens the page on their own PC, so return the link
+  const url = publicLink(config().publicUrl, hash);
+  if (clients.size) { broadcast('navigate', { hash }); return { ok: true, how: 'window', url }; }
+  if (url) return { ok: true, how: 'link', url };
   if (process.env.VIDEOHUB_NO_WINDOW) return { ok: true, how: 'none' };
   await openUrlWindow(`http://127.0.0.1:${port}/${hash}`);
   return { ok: true, how: 'opened' };
@@ -395,6 +399,7 @@ const IDLE_MS = (+process.env.VIDEOHUB_IDLE_SEC || 120) * 1000;
 const GUARD_OFF = process.env.VIDEOHUB_GUARD === 'off';   // test instances: never start or stop the real RenderGuard
 let lastUse = Date.now(), startupCache = { at: 0, on: false };
 async function alwaysOn() {
+  if (process.env.VIDEOHUB_ALWAYS_ON === '1') return true;   // a server (systemd unit): never close when idle
   if (Date.now() - startupCache.at > 60e3) { try { startupCache = { at: Date.now(), on: !!(await guardSettings()).Startup }; } catch { } }
   return startupCache.on;
 }
@@ -409,24 +414,11 @@ setInterval(async () => {
 // "Start with Windows" (node scripts/install.mjs open --server at log-in): the hub stays on, so the render protection runs from the start
 if (!GUARD_OFF) alwaysOn().then(on => { if (on) ensureGuard().catch(() => { }); }).catch(() => { });
 
-// only this PC's own pages and tools: a page on another website (or a DNS name pointed at 127.0.0.1) must not drive
-// the hub — its job queue can run commands. Claude's MCP tools, RenderGuard and scripts send no Origin/Sec-Fetch-Site.
-const LOOPBACK = new Set(['127.0.0.1', 'localhost', '[::1]']);
-function foreign(req) {
-  const host = String(req.headers.host || '').toLowerCase().replace(/:\d+$/, '');
-  if (!LOOPBACK.has(host)) return 'host';
-  const sfs = req.headers['sec-fetch-site'];
-  if (sfs && sfs !== 'same-origin' && sfs !== 'none') return 'site';
-  const origin = req.headers.origin;
-  if (origin && !['GET', 'HEAD', 'OPTIONS'].includes(req.method)) {
-    let o = null; try { o = new URL(origin); } catch { }
-    if (!o || !LOOPBACK.has(o.hostname.toLowerCase().replace(/^\[(.*)\]$/, '[$1]')) || String(o.port || '80') !== String(server.address()?.port)) return 'origin';
-  }
-  return null;
-}
+// only this PC's own pages and tools, plus the LAN names in config.allowedHosts (server/lan.js)
+const foreign = req => foreignWhy(req, { allowed: allowedHostSet(config().allowedHosts), port: server.address()?.port });
 const server = http.createServer(async (req, res) => {
   const why = foreign(req);
-  if (why) { res.writeHead(403, { 'Content-Type': 'text/plain; charset=utf-8' }); return res.end('VideoHub: only VideoHub windows and tools on this computer may use this server (' + why + ')'); }
+  if (why) { res.writeHead(403, { 'Content-Type': 'text/plain; charset=utf-8' }); return res.end('VideoHub: only VideoHub windows and tools on this computer (or a host in allowedHosts) may use this server (' + why + ')'); }
   const url = new URL(req.url, 'http://127.0.0.1');
   if (url.pathname !== '/api/ping') lastUse = Date.now();   // RenderGuard's keep-alive ping is not a use
   try {
@@ -459,8 +451,10 @@ const server = http.createServer(async (req, res) => {
 
 const port = +(process.env.VIDEOHUB_PORT || config().port || 7788);
 server.on('error', e => { if (e.code === 'EADDRINUSE') { console.error(`VideoHub is already running (port ${port}).`); process.exit(0); } throw e; });
-server.listen(port, '127.0.0.1', () => {
-  console.log(`VideoHub: http://127.0.0.1:${port}`);
+// bind address: loopback unless a server sets VIDEOHUB_HOST or config.host (e.g. 0.0.0.0 for the LAN)
+const host = process.env.VIDEOHUB_HOST || config().host || '127.0.0.1';
+server.listen(port, host, () => {
+  console.log(`VideoHub: http://${host}:${port}` + (config().publicUrl ? ` (network: ${config().publicUrl})` : ''));
   if (!index().at || index().projects.length === 0) scan().catch(e => console.error('scan:', e.message)); else scan().catch(() => { });
   if (process.env.VIDEOHUB_JOBS !== 'off') jobs.resume();   // test instances never pick up the real render queue
 });

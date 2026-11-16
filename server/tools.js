@@ -65,11 +65,12 @@ export const TOOLS = {
       const p = await resolve(a.project);
       const li = await call('GET', `/api/project/${p.id}/live`);   // also starts watching the code for changes
       if (!li.ok) return `The live preview could not open: ${li.reason}\nWhat it needs (docs/PROJECT-CONTRACT.md): the page defines window.renderOut(t), which draws second t synchronously on fixed-size canvases, and sets window.READY = true when ready; the sound in audio/mix.wav. Anything different goes in .videohub/project.json → live: {page, audio, dur, fps}.`;
-      let how = 'none';
-      if (a.open !== false) how = (await call('POST', '/api/show', { hash: `#/review/${p.id}/~live` })).how;
+      let how = 'none', url = null;
+      if (a.open !== false) ({ how, url = null } = await call('POST', '/api/show', { hash: `#/review/${p.id}/~live` }));
       return [
         `Live preview ready: "${p.title}" · ${li.page} · ${li.fps} fps · ${TC(li.dur)} (length from: ${li.durFrom}) · sound: ${li.audioName || 'none'}`,
         how === 'window' ? 'The open VideoHub window switched to this film.' : how === 'opened' ? 'A VideoHub window opened.' : '',
+        url ? `VideoHub runs on a server: give the user this link to open on their own PC (copy it exactly): ${url}` : '',
         'Now STOP, do not render. Tell the user (in their language): watch it in VideoHub, leave notes on the frames, then press "Send to agent" and paste the message here. Get the notes with hub_notes, fix the code (the preview reloads itself), mark each with hub_note_update. Render with hub_render only when the user asks for a render.',
         li.durFrom === 'default' ? 'The film length is unknown (60 s assumed): save it with hub_project({set:{render:{env:{DUR:"…"}}}}).' : '',
       ].filter(Boolean).join('\n');

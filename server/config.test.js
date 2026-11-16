@@ -50,3 +50,13 @@ test('an existing config keeps its values: explicit folders win over the workspa
   // an install from before baseDir: no key is added, Documents\VideoHub as before
   const old = load({ port: 7788, outputsDir: fixture('o'), roots: [] }, {}); assert.equal(old.config().baseDir, undefined); assert.equal(old.baseDir(), fixture('docs', 'VideoHub'));
 });
+
+test('network settings: loopback by default, kept from config.json, never changed through saveConfig', () => {
+  let c = load({ roots: [] }, {}); let r = c.config();
+  assert.equal(r.host, '127.0.0.1'); assert.deepEqual(JSON.parse(JSON.stringify(r.allowedHosts)), []); assert.equal(r.publicUrl, null);
+  c = load({ roots: [], host: '0.0.0.0', allowedHosts: ['192.168.1.50', 7, ' srv '], publicUrl: 'http://192.168.1.50:7788' }, {}); r = c.config();
+  assert.equal(r.host, '0.0.0.0'); assert.deepEqual(JSON.parse(JSON.stringify(r.allowedHosts)), ['192.168.1.50', 'srv']); assert.equal(r.publicUrl, 'http://192.168.1.50:7788');
+  const s = c.saveConfig({ host: '1.2.3.4', allowedHosts: ['evil.example'], publicUrl: 'http://evil.example' });
+  assert.equal(s.host, '0.0.0.0'); assert.deepEqual(JSON.parse(JSON.stringify(s.allowedHosts)), ['192.168.1.50', 'srv']); assert.equal(s.publicUrl, 'http://192.168.1.50:7788');
+  c = load({ roots: [], publicUrl: 'file:///etc' }, {}); assert.equal(c.config().publicUrl, null);
+});

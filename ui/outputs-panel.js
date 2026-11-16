@@ -1,5 +1,6 @@
 // Recent render files, shared by the home page and the full history page.
 import { h, api, toast, AGO, DUR, GB, onHubEvent } from './app.js';
+import { copyText } from './copy.js';
 
 const MODE = { full: 'Full film', partial: 'Partial render', preview: 'Preview', final: 'Final', web: 'Web copy', manual: 'Saved manually', command: 'Custom render' };
 const SRC = { kuyruk: 'VideoHub queue', sohbet: 'Saved by chat', tarama: 'Found in folder', RenderGuard: 'Outside VideoHub' };
@@ -35,7 +36,7 @@ export function outputActions(it, { compact = false, seen = async it => {
     }, 'ghost');
   }
   if (!compact && it.file) button('Copy path', async () => {
-    await navigator.clipboard.writeText(it.file); toast('File path copied');
+    await copyText(it.file, 'File path copied');
   }, 'ghost');
   if (!compact && it.projectId) button('See leftovers', () => { location.hash = '#/p/' + it.projectId; }, 'ghost');
   if (!compact && it.log) button('Show log', () => api('/api/open', { method: 'POST', body: { path: it.log, how: 'folder' } }), 'ghost');
