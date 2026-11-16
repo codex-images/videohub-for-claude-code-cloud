@@ -146,8 +146,25 @@ export function serve(req, res, p, rel) {
       .replace(/(\s(?:src|href)=["'])\/(?!\/)/gi, '$1' + pre);
     res.writeHead(200, head); return res.end(html);
   }
-  res.writeHead(200, head);
+  // Range support: a browser can only seek inside an mp4 when the server answers byte ranges with 206
+  head['Accept-Ranges'] = 'bytes';
+  const r = parseRange(req.headers && req.headers.range, st.size);
+  if (r === 'bad') { res.writeHead(416, { 'Content-Range': `bytes */${st.size}`, 'Accept-Ranges': 'bytes' }); return res.end(); }
+  if (r) {
+    res.writeHead(206, { ...head, 'Content-Range': `bytes ${r.start}-${r.end}/${st.size}`, 'Content-Length': r.end - r.start + 1 });
+    return fs.createReadStream(file, { start: r.start, end: r.end }).on('error', () => res.destroy()).pipe(res);
+  }
+  res.writeHead(200, { ...head, 'Content-Length': st.size });
   fs.createReadStream(file).on('error', () => res.destroy()).pipe(res);
+}
+
+// "bytes=a-b" | "bytes=a-" | "bytes=-n" -> {start,end}; null = no usable header (serve the whole file); 'bad' = unsatisfiable (416)
+export function parseRange(header, size) {
+  const m = /^bytes=(\d*)-(\d*)$/.exec(String(header || '').trim());
+  if (!m || (!m[1] && !m[2])) return null;
+  const start = m[1] ? +m[1] : Math.max(0, size - +m[2]);
+  const end = m[1] && m[2] ? Math.min(+m[2], size - 1) : size - 1;
+  return start >= size || end < start ? 'bad' : { start, end };
 }
 
 // code changes → open live players reload. One watcher per project, started when a player asks for the info.
