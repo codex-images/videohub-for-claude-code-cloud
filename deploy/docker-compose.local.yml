@@ -1,0 +1,30 @@
+# VideoHub on your own PC: open only to this computer (127.0.0.1:8080), two-way sync with your review repo.
+# Start: docker compose -f deploy/docker-compose.local.yml up -d --build   (with deploy/.env next to this file)
+services:
+  videohub:
+    build:
+      context: ..
+      dockerfile: deploy/Dockerfile
+    restart: unless-stopped
+    env_file: .env
+    environment:
+      - GATEWAY_PORT=8080
+    ports:
+      - "127.0.0.1:8080:8080"
+    volumes:
+      - videohub-data:/data
+    shm_size: "1gb"
+  # Cloudflare Tunnel for phone access (optional): docker compose -f deploy/docker-compose.local.yml --profile tunnel up -d
+  # Needs TUNNEL_TOKEN in .env and a Cloudflare Access rule that allows only you.
+  # Pinned version; --protocol http2 because many networks block QUIC (UDP 7844).
+  tunnel:
+    image: cloudflare/cloudflared:2026.11.0
+    profiles: ["tunnel"]
+    restart: unless-stopped
+    command: tunnel --no-autoupdate --protocol http2 run
+    environment:
+      - TUNNEL_TOKEN=${TUNNEL_TOKEN}
+    depends_on:
+      - videohub
+volumes:
+  videohub-data:

@@ -1,0 +1,27 @@
+# Server install (Coolify or any Docker host behind a reverse proxy). Build context is the repository root.
+# Set the variables in the host's environment (or an .env file next to this file).
+services:
+  videohub:
+    build:
+      context: ..
+      dockerfile: deploy/Dockerfile
+    restart: unless-stopped
+    environment:
+      - VH_USER=${VH_USER}
+      - VH_PASS=${VH_PASS}
+      - GATEWAY_PORT=8080
+      - VH_ALLOWED_HOSTS=${VH_ALLOWED_HOSTS:-}
+      - VH_PUBLIC_URL=${VH_PUBLIC_URL:-}
+      # two-way sync with the review repo (optional)
+      - FILMS_REPO=${FILMS_REPO:-}
+      - FILMS_BRANCH=${FILMS_BRANCH:-}
+      - FILMS_SUBDIR=${FILMS_SUBDIR:-}
+      - GIT_TOKEN=${GIT_TOKEN:-}
+      - SYNC_EVERY=${SYNC_EVERY:-60}
+    volumes:
+      - videohub-data:/data
+    expose:
+      - "8080"
+    shm_size: "1gb"
+volumes:
+  videohub-data:
