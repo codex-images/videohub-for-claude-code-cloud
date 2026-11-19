@@ -1,4 +1,4 @@
-# VideoHub for Claude Code cloud
+# VideoHub for Claude Code on the Cloud — Mobile-friendly
 
 **Fork of [TensaikunYT/Videohub](https://github.com/TensaikunYT/Videohub)** (MIT). All credit for VideoHub itself (the review studio, live preview, notes, render queue and MCP tools) goes to its creator, TensaikunYT. The original documentation is kept in [docs/UPSTREAM-README.md](docs/UPSTREAM-README.md).
 
@@ -15,6 +15,7 @@ VideoHub was built for an agent running on the same PC. This fork makes it a rev
 | Stopping a render | Chrome can be relaunched by a render that ignores SIGTERM | Root frozen first (from jorgepvenegas/Videohub) |
 | Frameworks | Plain code | Adapters for Remotion and HyperFrames (`adapters/`) |
 | Access control | None (loopback) | Password gateway, plus Cloudflare Access for the tunnel |
+| Phone and tablet | Desktop layout only: the sidebar takes half the screen and the player is cut off | Responsive layout below 820px: hamburger menu, sidebar drawer, full-width player, finger-sized controls |
 
 ```
 Claude cloud session
@@ -28,6 +29,30 @@ Docker: VideoHub + password gateway ---------+
    v
 Browser / phone: watch, draw, write notes
 ```
+
+## What's new: mobile-friendly
+
+Reviewing from a phone was the main reason to put VideoHub behind a tunnel, but the upstream UI is desktop-only: on a phone the fixed sidebar takes about half the screen and the player, the tools and the notes are cut off on the right.
+
+This fork adds a small responsive layer, `ui/mobile.css` and `ui/mobile.js`, loaded from `ui/index.html`. VideoHub's own code is unchanged.
+
+- **Below 820px wide:** the sidebar becomes a drawer behind a hamburger button, with a dark backdrop. It closes on a backdrop tap, on choosing a link, on Escape and when the screen changes.
+- **Content:** takes the full width. The player is full width, tables scroll inside themselves, and there is no horizontal page scroll.
+- **Controls:** buttons and inputs are at least 44px tall, so they are easy to tap. Inputs use 16px text, so iPhone does not zoom in.
+- **Every screen was adjusted:** Projects, the project page, Review and notes (tools in one scrolling row, player, notes and timeline in one column), Renders, Recent renders, the Thumbnail studio and its editor, Disk and Settings.
+- **Desktop:** above 820px the page is exactly as before (checked side by side at 1280px).
+
+Tested with Playwright at 390px and 1280px, with touch emulation in Chromium, and on a real phone through the Cloudflare Tunnel.
+
+| Review screen, before | Review screen, after | Drawer open |
+|---|---|---|
+| ![Review before](docs/screenshots/mobile/before-review-390.png) | ![Review after](docs/screenshots/mobile/after-review-390.png) | ![Drawer](docs/screenshots/mobile/after-drawer-open-390.png) |
+
+| Projects, before | Projects, after |
+|---|---|
+| ![Projects before](docs/screenshots/mobile/before-projects-390.png) | ![Projects after](docs/screenshots/mobile/after-projects-390.png) |
+
+To update an existing install: `git pull`, then `docker compose -f docker-compose.local.yml up -d --build` in `deploy/`.
 
 ## Quick start (Windows PC with Docker Desktop)
 

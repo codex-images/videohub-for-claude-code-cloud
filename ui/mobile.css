@@ -1,0 +1,169 @@
+/* Mobile layer for VideoHub. Everything is inside one media query:
+   above 820px the page looks exactly as before. */
+
+/* The hamburger button and the backdrop are created by mobile.js; hidden on desktop */
+#vh-burger, #vh-backdrop { display: none; }
+
+@media (max-width: 819.98px) {
+  :root { --vh-tap: 44px; --vh-top: 60px; }
+
+  html, body { overflow-x: hidden; max-width: 100%; -webkit-text-size-adjust: 100%; }
+  body { overscroll-behavior-y: none; }
+
+  /* ---------- Layout: the sidebar becomes a drawer, content takes the full width ---------- */
+  .app, .app.app-editor { display: block !important; height: 100vh; height: 100dvh; grid-template-columns: none !important; }
+  .main, .main.main-editor, .main:has(> .thumbstudio-editor-page) {
+    width: 100%; max-width: 100%; height: 100vh; height: 100dvh; overflow-x: hidden; overflow-y: auto;
+    -webkit-overflow-scrolling: touch; overscroll-behavior: contain;
+  }
+  .app > .side, .app.app-editor > .side, .app.app-editor:not(.side-peek) > .side, .app.app-editor.side-peek > .side {
+    position: fixed !important; left: 0; top: 0; bottom: 0; width: min(300px, 84vw) !important; z-index: 1001;
+    padding: 14px 10px calc(14px + env(safe-area-inset-bottom)) !important; overflow-y: auto; align-items: stretch !important;
+    transform: translateX(-102%); visibility: hidden; box-shadow: none;
+    transition: transform .22s ease, visibility 0s linear .22s;
+  }
+  /* In the editor VideoHub collapses the sidebar to icons: restore it to full */
+  .app.app-editor > .side .logo { font-size: 16px !important; padding: 4px 8px 18px !important; justify-content: flex-start !important; }
+  .app.app-editor > .side .nav a { font-size: 14px !important; justify-content: flex-start !important; padding: 8px 10px !important; gap: 10px !important; }
+  .app.app-editor > .side .nav a::before { content: none !important; }
+  .app.app-editor > .side .nav .count { position: static !important; font-size: 12px !important; padding: 0 7px !important; margin-left: auto !important; line-height: inherit !important; }
+  .app.app-editor > .side .live { display: grid !important; }
+  html.vh-drawer-open .app > .side { transform: none; visibility: visible; box-shadow: 8px 0 30px rgba(0,0,0,.55); transition: transform .22s ease, visibility 0s; }
+  html.vh-drawer-open .main { overflow: hidden; }
+
+  #vh-backdrop {
+    display: block; position: fixed; inset: 0; z-index: 1000; background: rgba(0,0,0,.6);
+    opacity: 0; pointer-events: none; transition: opacity .22s ease;
+  }
+  html.vh-drawer-open #vh-backdrop { opacity: 1; pointer-events: auto; }
+
+  #vh-burger {
+    display: grid; place-items: center; position: fixed; z-index: 999; top: max(8px, env(safe-area-inset-top)); left: 8px;
+    width: var(--vh-tap); height: var(--vh-tap); padding: 0; border-radius: 12px;
+    background: var(--card2); border: 1px solid var(--border2); color: var(--text); font-size: 22px; line-height: 1;
+    box-shadow: 0 2px 10px rgba(0,0,0,.45);
+  }
+  #vh-burger svg { width: 22px; height: 22px; display: block; }
+  html.vh-drawer-open #vh-burger { visibility: hidden; }
+
+  /* ---------- General: spacing and finger-sized controls ---------- */
+  .page, .page.page-wide { padding: var(--vh-top) 14px 48px; max-width: 100%; }
+  h1 { font-size: 20px; overflow-wrap: anywhere; }
+
+  button, select, input[type=text], input[type=search], input[type=number], input:not([type]), textarea { min-height: var(--vh-tap); }
+  input[type=text], input[type=search], input[type=number], input:not([type]), select, textarea { font-size: 16px; } /* no automatic zoom on iPhone */
+  button { padding-left: 14px; padding-right: 14px; }
+  button.ghost { padding-left: 10px; padding-right: 10px; }
+  button { min-width: var(--vh-tap); }
+  .pill { min-height: 0; }
+  summary { min-height: var(--vh-tap); display: flex; align-items: center; }
+  label:has(input[type=checkbox]), label:has(input[type=radio]) { display: inline-flex; align-items: center; gap: 8px; min-height: var(--vh-tap); }
+  .rv2 button.tbtn, .rv2 .tbtn { min-width: var(--vh-tap) !important; min-height: var(--vh-tap); }
+  input[type=color], input[type=file] { min-height: var(--vh-tap); min-width: var(--vh-tap); }
+  input[type=number] { min-height: var(--vh-tap); height: var(--vh-tap); }
+  /* Single links: enlarge the tap area without changing the layout */
+  .page a[href], .rv2-top a { position: relative; }
+  .page a[href]::after, .rv2-top a::after { content: ''; position: absolute; inset: -13px -6px; }
+  input[type=checkbox], input[type=radio] { width: 22px; height: 22px; min-height: 0; }
+  .nav a { min-height: var(--vh-tap); }
+  .card .cardbtn { width: var(--vh-tap); height: var(--vh-tap); }
+  .card .cardlink { min-height: var(--vh-tap); }
+  .output-actions button { min-height: var(--vh-tap); }
+  .toast { left: 12px; right: 12px; bottom: calc(12px + env(safe-area-inset-bottom)); }
+  .toast > div { max-width: none; }
+  .downbar { left: 12px; right: 12px; transform: none; max-width: none; }
+
+  /* ---------- Layouts ---------- */
+  .row { gap: 8px; }
+  .filters input[type=search], .output-filters input { width: 100%; max-width: none; flex: 1 1 100%; }
+  .filters select { flex: 1 1 140px; min-width: 0; }
+  .tiles { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+  .tile .v { font-size: 19px; }
+  .grid { grid-template-columns: minmax(0, 1fr); }
+  .split { grid-template-columns: minmax(0, 1fr); }
+  .kv { grid-template-columns: minmax(0, 1fr); gap: 2px 0; }
+  .kv .k { margin-top: 8px; }
+  .ellip, .outpath { max-width: 100%; }
+  .panel, .rule, .card, .output-card, .modal { min-width: 0; max-width: 100%; }
+  .panel { padding: 12px; }
+  .modal { width: calc(100vw - 24px); max-height: 92vh; overflow: auto; }
+  .stickybar { padding: 10px 14px; flex-wrap: wrap; }
+  .rule .item { grid-template-columns: 30px minmax(0, 1fr) auto; }
+  .output-card { grid-template-columns: minmax(0, 1fr) !important; padding: 12px; }
+  .output-icon { display: none; }
+  .output-title { align-items: flex-start; }
+  .compact .output-list { grid-template-columns: minmax(0, 1fr); }
+  .cleanbox { right: 12px; left: 12px; width: auto; }
+  pre, code { overflow-wrap: anywhere; white-space: pre-wrap; }
+  img, canvas { max-width: 100%; }
+  .page select, .page input:not([type=checkbox]):not([type=radio]):not([type=range]):not([type=color]), .page textarea { max-width: 100%; min-width: 0; }
+  .page input[type=range] { max-width: 100%; }
+
+  /* Tables scroll horizontally inside themselves, not the page */
+  table.t, table.outs, .panel table, .rule table {
+    display: block; max-width: 100%; overflow-x: auto; -webkit-overflow-scrolling: touch;
+  }
+  table.t th, table.t td { white-space: nowrap; }
+  table.t td .ellip, table.t td.wrap, table.t td .outpath { white-space: normal; }
+  .active-render-table { overflow-x: auto; max-width: 100%; }
+
+  /* Full-width player (pages and dialogs; not the notes editor, which sizes its own player) */
+  .page video, .modal video, .toast video, .output-card video { display: block; width: 100%; max-width: 100%; height: auto; }
+
+  /* ---------- Thumbnail studio ---------- */
+  .page.thumbstudio-editor-page { height: auto; min-height: 100%; overflow: visible; }
+  .thumbstudio-editor { height: auto; overflow: visible; }
+  .editor-header { max-height: none; padding: 8px 12px 8px 64px; }
+  .editor-title { max-width: 100%; }
+  .editor-workspace { flex-direction: column; overflow: visible; flex: none; }
+  .editor-left-col { width: 100%; flex-direction: column; border-right: 0; border-bottom: 1px solid var(--border); }
+  .editor-toolbar { grid-template-columns: repeat(4, minmax(0, 1fr)); max-height: none; }
+  .tool-btn { min-height: var(--vh-tap); font-size: 12.5px; padding: 6px 2px; }
+  .editor-layers-panel { max-height: 260px; }
+  .editor-center-col { flex: none !important; overflow: visible !important; }
+  .editor-canvas-viewport { flex: none; padding: 8px; min-height: 220px; }
+  .editor-inspector { width: 100%; border-left: 0; border-top: 1px solid var(--border); overflow: visible; scrollbar-gutter: auto; }
+  .ts-variants-row { min-height: 0; }
+  .ts-viewer-bg { padding: 8px; }
+  .ts-viewer { max-height: 96vh; }
+  .ts-viewer-body { flex-direction: column; }
+  .ts-notepop { width: min(260px, 70vw); }
+  .thumbstudio-grid { grid-template-columns: minmax(0, 1fr); }
+  .thumbstudio-header { flex-wrap: wrap; }
+  .modal.modal-wide { width: calc(100vw - 16px); max-height: 94vh; }
+
+  /* ---------- Review and notes (video editor) ---------- */
+  .page.page-editor { height: auto; min-height: 100%; overflow: visible; padding: 8px 8px 24px; }
+  .rv2, .rv2.rv2-narrow {
+    display: flex; flex-direction: column; height: auto; gap: 8px; grid-template-columns: none; grid-template-rows: none; --side-w: 100%;
+  }
+  .rv2:fullscreen { overflow: auto; }
+  /* Top bar: leave room for the hamburger and hide the original ☰ */
+  .rv2-top { order: 0; padding-left: 54px; min-height: var(--vh-tap); overflow-x: auto; flex-wrap: nowrap; scrollbar-width: none; }
+  .rv2-top .rv2-menu { display: none; }
+  .rv2-top .rv2-back { max-width: 40vw; }
+  .rv2-top select { max-width: 50vw; }
+  .rv2-top button, .rv2-top .segs .seg { min-height: var(--vh-tap); }
+  .fit-hide { display: initial !important; } /* no need to hide buttons in the ⋯ menu, the bar scrolls */
+  .rv2-top .rv2-more { display: none !important; }
+  .rv2-center { order: 2; flex: none; height: auto; }
+  .rv2-center > .rv2-view { flex: none; height: clamp(230px, 52vh, 520px); }
+  .rv2-tools {
+    order: 1; align-self: stretch; width: 100%; max-width: 100%; min-height: 52px; flex-direction: row; align-items: center; justify-content: flex-start; padding: 4px; overflow-x: auto; overflow-y: hidden; gap: 4px; flex: none;
+    -webkit-overflow-scrolling: touch;
+  }
+  .rv2-tools .tb, .rv2-tools .tb.tb-style, .rv2-stylepop .tb { width: var(--vh-tap); height: var(--vh-tap); min-height: var(--vh-tap); flex: none; }
+  .rv2-tools .tsep { width: 1px; height: 28px; margin: 0 3px; }
+  .rv2-stylepop .sw { width: 32px; height: 32px; min-height: 0; }
+  .rv2-side { order: 3; height: auto; min-height: 340px; max-height: none; }
+  .rv2-tabbody { min-height: 280px; }
+  .rv2-list { min-height: 180px; }
+  .rv2-pane { min-height: 280px; height: auto; }
+  .rv2-pane[data-id=notes] { overflow: auto; }
+  .rv2-tab { min-height: var(--vh-tap); padding-left: 12px; padding-right: 12px; }
+  .rv2-dock { order: 4; height: var(--dock-h, 262px); min-height: 220px; }
+  .rv2-split { display: none !important; }
+  .rv2-zoomctl button { width: 36px; height: 36px; }
+  .rv2-help .kv, .rv2-help .kv { grid-template-columns: minmax(0, 1fr); }
+  .rv2-pop { max-width: calc(100vw - 16px); }
+}
