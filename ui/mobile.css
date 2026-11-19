@@ -4,6 +4,9 @@
 /* The hamburger button and the backdrop are created by mobile.js; hidden on desktop */
 #vh-burger, #vh-backdrop { display: none; }
 
+/* The touch control bar and the back button (created by mobile.js) show only below 820px */
+.vh-tbar, .vh-home { display: none; }
+
 @media (max-width: 819.98px) {
   :root { --vh-tap: 44px; --vh-top: 60px; }
 
@@ -28,7 +31,10 @@
   .app.app-editor > .side .nav a::before { content: none !important; }
   .app.app-editor > .side .nav .count { position: static !important; font-size: 12px !important; padding: 0 7px !important; margin-left: auto !important; line-height: inherit !important; }
   .app.app-editor > .side .live { display: grid !important; }
-  html.vh-drawer-open .app > .side { transform: none; visibility: visible; box-shadow: 8px 0 30px rgba(0,0,0,.55); transition: transform .22s ease, visibility 0s; }
+  /* Must win over VideoHub's editor rules (.app.app-editor:not(.side-peek) > .side), otherwise the drawer stays hidden on the review screen */
+  html.vh-drawer-open .app > .side, html.vh-drawer-open .app.app-editor > .side, html.vh-drawer-open .app.app-editor:not(.side-peek) > .side {
+    transform: none !important; visibility: visible !important; box-shadow: 8px 0 30px rgba(0,0,0,.55); transition: transform .22s ease, visibility 0s;
+  }
   html.vh-drawer-open .main { overflow: hidden; }
 
   #vh-backdrop {
@@ -141,13 +147,19 @@
   /* Top bar: leave room for the hamburger and hide the original ☰ */
   .rv2-top { order: 0; padding-left: 54px; min-height: var(--vh-tap); overflow-x: auto; flex-wrap: nowrap; scrollbar-width: none; }
   .rv2-top .rv2-menu { display: none; }
+  .rv2-top .vh-home { display: inline-flex; align-items: center; gap: 4px; flex: none; min-height: var(--vh-tap); padding: 0 14px; border-radius: var(--r); background: var(--accent-bg); border: 1px solid var(--accent); color: var(--accent); font-weight: 600; white-space: nowrap; }
+  .rv2-top .vh-home::after { content: none; }
   .rv2-top .rv2-back { max-width: 40vw; }
   .rv2-top select { max-width: 50vw; }
   .rv2-top button, .rv2-top .segs .seg { min-height: var(--vh-tap); }
-  .fit-hide { display: initial !important; } /* no need to hide buttons in the ⋯ menu, the bar scrolls */
+  .rv2-top .fit-hide { display: initial !important; } /* the top bar scrolls, so no need to hide buttons in the ⋯ menu */
   .rv2-top .rv2-more { display: none !important; }
+  .rv2-tip { display: none !important; }
   .rv2-center { order: 2; flex: none; height: auto; }
   .rv2-center > .rv2-view { flex: none; height: clamp(230px, 52vh, 520px); }
+  /* Touch drag on the timeline: the ruler takes the touch, rows allow only vertical page scroll */
+  .tl2-wrap canvas { touch-action: pan-y; }
+  .tl2-wrap canvas.tl2-ruler { touch-action: none; }
   .rv2-tools {
     order: 1; align-self: stretch; width: 100%; max-width: 100%; min-height: 52px; flex-direction: row; align-items: center; justify-content: flex-start; padding: 4px; overflow-x: auto; overflow-y: hidden; gap: 4px; flex: none;
     -webkit-overflow-scrolling: touch;
@@ -164,6 +176,23 @@
   .rv2-dock { order: 4; height: var(--dock-h, 262px); min-height: 220px; }
   .rv2-split { display: none !important; }
   .rv2-zoomctl button { width: 36px; height: 36px; }
+  .rv2-transport { height: auto; min-height: 52px; padding-top: 3px; padding-bottom: 3px; }
   .rv2-help .kv, .rv2-help .kv { grid-template-columns: minmax(0, 1fr); }
   .rv2-pop { max-width: calc(100vw - 16px); }
+
+  /* ---------- Touch control bar ---------- */
+  .vh-tbar { display: grid; gap: 8px; padding: 10px; margin-top: 6px; background: var(--card); border: 1px solid var(--border); border-radius: 10px; }
+  .vh-scrub { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: center; gap: 10px; }
+  .vh-t { white-space: nowrap; font: 12px var(--mono); color: var(--muted); font-variant-numeric: tabular-nums; min-width: 4.2em; }
+  .vh-now { color: var(--text); text-align: right; }
+  .vh-track { position: relative; margin: 0 14px; height: 52px; touch-action: none; cursor: pointer; user-select: none; -webkit-user-select: none; outline: none; }
+  .vh-rail { position: absolute; left: 0; right: 0; top: 50%; height: 8px; margin-top: -4px; border-radius: 4px; background: var(--track); overflow: hidden; }
+  .vh-fill { display: block; height: 100%; width: 0; background: var(--accent); }
+  .vh-thumb { position: absolute; top: 50%; left: 0; width: 30px; height: 30px; margin: -15px 0 0 -15px; border-radius: 50%; background: var(--accent); border: 3px solid #1a1006; box-shadow: 0 0 0 2px var(--accent), 0 2px 8px rgba(0,0,0,.5); transition: transform .1s; }
+  .vh-track.drag .vh-thumb, .vh-track:focus-visible .vh-thumb { transform: scale(1.25); }
+  .vh-jumps, .vh-speeds { display: grid; gap: 6px; }
+  .vh-jumps { grid-template-columns: repeat(6, minmax(0, 1fr)); }
+  .vh-speeds { grid-template-columns: repeat(5, minmax(0, 1fr)); }
+  .vh-jumps button, .vh-speeds button { min-width: 0; height: 48px; padding: 0 2px; font-size: 14px; font-variant-numeric: tabular-nums; }
+  .vh-speeds button.on { background: var(--accent-bg); color: var(--accent); border-color: var(--accent); font-weight: 600; }
 }

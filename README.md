@@ -15,7 +15,7 @@ VideoHub was built for an agent running on the same PC. This fork makes it a rev
 | Stopping a render | Chrome can be relaunched by a render that ignores SIGTERM | Root frozen first (from jorgepvenegas/Videohub) |
 | Frameworks | Plain code | Adapters for Remotion and HyperFrames (`adapters/`) |
 | Access control | None (loopback) | Password gateway, plus Cloudflare Access for the tunnel |
-| Phone and tablet | Desktop layout only: the sidebar takes half the screen and the player is cut off | Responsive layout below 820px: hamburger menu, sidebar drawer, full-width player, finger-sized controls |
+| Phone and tablet | Desktop layout only: the sidebar takes half the screen and the player is cut off | Responsive layout below 820px: hamburger menu, sidebar drawer, full-width player, touch scrub bar with jump and speed buttons, finger-sized controls |
 
 ```
 Claude cloud session
@@ -41,12 +41,18 @@ This fork adds a small responsive layer, `ui/mobile.css` and `ui/mobile.js`, loa
 - **Controls:** buttons and inputs are at least 44px tall, so they are easy to tap. Inputs use 16px text, so iPhone does not zoom in.
 - **Every screen was adjusted:** Projects, the project page, Review and notes (tools in one scrolling row, player, notes and timeline in one column), Renders, Recent renders, the Thumbnail studio and its editor, Disk and Settings.
 - **Desktop:** above 820px the page is exactly as before (checked side by side at 1280px).
+- **Touch control bar on the review screen:** a full-width scrub bar with a large thumb (drag or tap to seek without playing, with current time and length), jump buttons (−10s, −1s, one frame back, one frame forward, +1s, +10s) and speed buttons (0.25×, 0.5×, 1×, 1.5×, 2×). It drives VideoHub's existing transport controls, so there is no duplicated playback logic. The original timeline stays where it was.
+- **Back to projects:** a prominent "‹ Projects" button in the review screen's top bar, and the drawer opens on every screen, including review.
 
 Tested with Playwright at 390px and 1280px, with touch emulation in Chromium, and on a real phone through the Cloudflare Tunnel.
 
 | Review screen, before | Review screen, after | Drawer open |
 |---|---|---|
 | ![Review before](docs/screenshots/mobile/before-review-390.png) | ![Review after](docs/screenshots/mobile/after-review-390.png) | ![Drawer](docs/screenshots/mobile/after-drawer-open-390.png) |
+
+| Touch control bar | Drawer on the review screen | Back to projects |
+|---|---|---|
+| ![Touch bar](docs/screenshots/mobile/touchbar-after-390.png) | ![Drawer on review](docs/screenshots/mobile/drawer-fix-review-open-390.png) | ![Back button](docs/screenshots/mobile/drawer-fix-home-button-390.png) |
 
 | Projects, before | Projects, after |
 |---|---|
